@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oidc-proxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: oidc-proxy
+  template:
+    metadata:
+      labels:
+        app: oidc-proxy
+    spec:
+      containers:
+      - name: oidc-proxy
+        image: evry/oidc-proxy:v1.2.0
+        env:
+        - name: OID_DISCOVERY
+          value: https://oidc.brancz.com/identity/.well-known/openid-configuration
+        - name: OID_CLIENT_ID
+          value: example-app
+        - name: OID_CLIENT_SECRET
+          value: ZXhhbXBsZS1hcHAtc2VjcmV0
+        - name: OID_SESSION_SECRET
+          value: somesecret
+        - name: OID_SESSION_NAME
+          value: oidc-session
+        - name: OID_SESSION_CHECK_SSI
+          value: "off"
+        - name: OIDC_AUTH_SCOPE
+          value: "openid email"
+        - name: PROXY_HOST
+          value: kube-rbac-proxy.oidc.svc.cluster.local
+        - name: PROXY_PORT
+          value: "8444"
+        - name: PROXY_PROTOCOL
+          value: http
+        ports:
+        - containerPort: 80
+          name: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: oidc-proxy
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: oidc-proxy

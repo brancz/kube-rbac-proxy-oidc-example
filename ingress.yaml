@@ -1,0 +1,27 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    kubernetes.io/tls-acme: 'true'
+    ingress.kubernetes.io/ssl-redirect: "true"
+    ingress.kubernetes.io/use-port-in-redirects: "true"
+  name: oidc
+  namespace: oidc
+spec:
+  rules:
+  - host: oidc.brancz.com
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: oidc-proxy
+          servicePort: http
+      - path: /identity
+        backend:
+          serviceName: dex
+          servicePort: http
+  tls:
+  - hosts:
+    - oidc.brancz.com
+    secretName: oidc-brancz-com-tls
